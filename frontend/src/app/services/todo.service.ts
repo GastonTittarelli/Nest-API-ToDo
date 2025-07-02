@@ -16,11 +16,16 @@ export class TodoService {
     return this.http.get<Todo[]>(this.apiUrl);
   }
 
-  addTodo(title: string): Observable<Todo> {
-    return this.http.post<Todo>(this.apiUrl, { title });
+  addTodo(title: string): Observable<{ message: string; todo: Todo }> {
+  return this.http.post<{ message: string; todo: Todo }>(this.apiUrl, { title });
+
   }
 
-  deleteTodo(id: number): Observable<any> {
-    return this.http.delete(`${this.apiUrl}/${id}`);
+  deleteTodo(id: number): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
+
+  updateTodo(id: number, changes: Partial<Todo>): Observable<Todo> {
+  return this.http.patch<Todo>(`${this.apiUrl}/${id}`, changes);
+}
 }

@@ -14,13 +14,24 @@
 
   <div class="task-cards-container" *ngIf="tasks.length > 0">
     <h2>Lista de Tareas</h2>
-    <mat-card class="task-card" *ngFor="let task of tasks; let i = index">
+    
+    <mat-card class="task-card" [ngClass]="{ 'completed-card': task.completed }" *ngFor="let task of tasks; let i = index">
       <div class="task-content">
-        <span>{{ task.title }}</span>
-        <button mat-icon-button color="warn" (click)="deleteTask(i)">
-          <mat-icon>delete</mat-icon>
-        </button>
+        <span [ngClass]="{ 'completed-task': task.completed }">{{ task.title }}</span>
+
+        <div class="actions">
+          
+          <button mat-icon-button [color]="task.completed ? 'warn' : 'accent'" (click)="completeTask(i)">
+            <mat-icon>{{ task.completed ? 'undo' : 'check_circle' }}</mat-icon>
+          </button>
+
+          
+          <button mat-icon-button color="warn" (click)="deleteTask(i)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
       </div>
     </mat-card>
+
   </div>
 </div>

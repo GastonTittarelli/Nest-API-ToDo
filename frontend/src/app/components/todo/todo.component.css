@@ -64,3 +64,9 @@ h2{
   font-size: 1.1rem;
   font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
+
+.completed-card {
+  background-color: #e0ffe0; 
+  border-left: 5px solid #4caf50;
+}
+

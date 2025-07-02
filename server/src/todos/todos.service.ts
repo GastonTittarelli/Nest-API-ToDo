@@ -35,7 +35,7 @@ export class TodosService {
     return this.todos;
   }
 
-  create(title: string): Todo {
+  create(title: string): { message: string; todo: Todo } {
 
     const exists = this.todos.find(todo => todo.title === title);
     if (exists) {
@@ -49,7 +49,11 @@ export class TodosService {
     };
     this.todos.push(newTodo);
     this.saveToFile();
-    return newTodo;
+    
+    return {
+      message: 'Se creó correctamente la tarea',
+      todo: newTodo
+  };
   }
 
   remove(id: string): { message: string, todo: Todo } {
@@ -66,5 +70,20 @@ export class TodosService {
       message: 'Se eliminó correctamente la tarea',
       todo: deleted
     };
+}
+
+update(id: string, changes: Partial<Pick<Todo, 'completed'>>): Todo {
+  const index = this.todos.findIndex(todo => todo.id === id);
+  if (index === -1) {
+    throw new NotFoundException(`No se encontró una tarea con id: ${id}`);
+  }
+
+  const todo = this.todos[index];
+  if (typeof changes.completed === 'boolean') {
+    todo.completed = changes.completed;
+    this.saveToFile();
+  }
+
+  return todo;
 }
 }
