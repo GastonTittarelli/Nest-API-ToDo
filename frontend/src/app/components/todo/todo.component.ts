@@ -86,11 +86,13 @@ export class TodoComponent implements OnInit {
 
 
   completeTask(index: number) {
-  const task = this.tasks[index];
-  const newCompletedValue = !task.completed;
+    const task = this.tasks[index];
+    const newCompletedValue = !task.completed;
 
-  this.todoService.updateTodo(task.id, { completed: newCompletedValue }).subscribe(updated => {
-    this.tasks[index].completed = updated.completed;
+    this.todoService.updateTodo(task.id, { completed: newCompletedValue }).subscribe(res => {
+    this.tasks[index].completed = res.todo.completed;
+    this.notification.success(res.message);
   });
 }
+
 }

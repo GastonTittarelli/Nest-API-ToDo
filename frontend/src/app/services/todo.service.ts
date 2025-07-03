@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Todo } from '../interfaces/todo.interface';
+import { Todo, UpdateTodoResponse } from '../interfaces/todo.interface';
 
 
 @Injectable({
@@ -25,7 +25,7 @@ export class TodoService {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/${id}`);
   }
 
-  updateTodo(id: number, changes: Partial<Todo>): Observable<Todo> {
-  return this.http.patch<Todo>(`${this.apiUrl}/${id}`, changes);
+  updateTodo(id: number, changes: Partial<Todo>): Observable<UpdateTodoResponse> {
+  return this.http.patch<UpdateTodoResponse>(`${this.apiUrl}/${id}`, changes);
 }
 }

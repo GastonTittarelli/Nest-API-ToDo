@@ -1,89 +1,50 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { Todo } from './todo.interface';
-import * as fs from 'fs';
-import * as path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-
-// const DATA_FILE = path.join(__dirname, 'todos.json');
-const DATA_FILE = path.join(process.cwd(), 'data', 'todos.json');
+import { Injectable, ConflictException, NotFoundException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { Todo } from './entities/todo.entity';
+import { CreateTodoDto } from './dto/create-todo.dto';
 
 @Injectable()
 export class TodosService {
-  private todos: Todo[] = [];
-  // private currentId = 1;
+  constructor(
+    @InjectRepository(Todo)
+    private readonly todoRepo: Repository<Todo>
+  ) {}
 
-  // Constructor que inicializa el servicio y carga las tareas desde todos.json
-  constructor() {
-    this.loadFromFile();
+  async findAll(): Promise<Todo[]> {
+    return await this.todoRepo.find();
   }
 
-  private loadFromFile() {
-    if (fs.existsSync(DATA_FILE)) {
-      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-      this.todos = JSON.parse(raw);
-    } else {
-      this.todos = [];
-    }
-  }
-
-  private saveToFile() {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(this.todos, null, 2), 'utf-8');
-  }
-
-
-  findAll(): Todo[] {
-    return this.todos;
-  }
-
-  create(title: string): { message: string; todo: Todo } {
-
-    const exists = this.todos.find(todo => todo.title === title);
+  async create(title: string): Promise<{ message: string; todo: Todo }> {
+    const exists = await this.todoRepo.findOne({ where: { title } });
     if (exists) {
       throw new ConflictException(`Ya existe una tarea con el título: ${title}`);
     }
 
-    const newTodo: Todo = {
-      id: uuidv4(),
-      title,
-      completed: false,
-    };
-    this.todos.push(newTodo);
-    this.saveToFile();
-    
-    return {
-      message: 'Se creó correctamente la tarea',
-      todo: newTodo
-  };
+    const todo = this.todoRepo.create({ title });
+    await this.todoRepo.save(todo);
+    return { message: 'Se creó correctamente la tarea', todo };
   }
 
-  remove(id: string): { message: string, todo: Todo } {
-    const index = this.todos.findIndex(todo => todo.id === id);
-    if (index === -1) {
-    throw new NotFoundException(`No se encontró una tarea con id: ${id}`);
+  async remove(id: string): Promise<{ message: string; todo: Todo }> {
+    const todo = await this.todoRepo.findOne({ where: { id } });
+    if (!todo) {
+      throw new NotFoundException(`No se encontró una tarea con id: ${id}`);
+    }
+    await this.todoRepo.remove(todo);
+    return { message: 'Se eliminó correctamente la tarea', todo };
+  }
+
+  async update(id: string, changes: Partial<Pick<Todo, 'completed'>>): Promise<{ message: string; todo: Todo }> {
+    const todo = await this.todoRepo.findOne({ where: { id } });
+    if (!todo) {
+      throw new NotFoundException(`No se encontró una tarea con id: ${id}`);
     }
 
-    const deleted = this.todos[index]; // 💾 Guardamos la tarea eliminada
-    this.todos.splice(index, 1);
-    this.saveToFile();
+    todo.completed = changes.completed ?? todo.completed;
+    await this.todoRepo.save(todo);
 
-    return {
-      message: 'Se eliminó correctamente la tarea',
-      todo: deleted
-    };
-}
-
-update(id: string, changes: Partial<Pick<Todo, 'completed'>>): Todo {
-  const index = this.todos.findIndex(todo => todo.id === id);
-  if (index === -1) {
-    throw new NotFoundException(`No se encontró una tarea con id: ${id}`);
+    return { message: `Tarea "${todo.title}" actualizada`, todo };
   }
-
-  const todo = this.todos[index];
-  if (typeof changes.completed === 'boolean') {
-    todo.completed = changes.completed;
-    this.saveToFile();
-  }
-
-  return todo;
-}
+  
 }
