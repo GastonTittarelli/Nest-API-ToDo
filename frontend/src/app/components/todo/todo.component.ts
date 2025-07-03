@@ -64,7 +64,11 @@ export class TodoComponent implements OnInit {
         this.notification.success(res.message); 
       },
       error: err => {
-        this.notification.error(err.error?.message || 'Error al agregar la tarea');
+        // Evita mostrar los errores de validación automática (message como array)
+        const errorMessage = err.error?.message;
+        if (Array.isArray(errorMessage)) return;
+
+        this.notification.error(errorMessage || 'Error al agregar la tarea');
       }
     });
   }
